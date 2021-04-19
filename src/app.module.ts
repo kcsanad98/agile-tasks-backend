@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
+import { typeOrmConifg } from './config/typeOrmConfig';
 
 dotenv.config();
 
 @Module({
-    imports: [MongooseModule.forRoot(process.env.MONGO_URL)]
+    imports: [TypeOrmModule.forRoot(typeOrmConifg)]
 })
 export class AppModule {}
