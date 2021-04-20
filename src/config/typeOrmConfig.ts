@@ -8,8 +8,8 @@ const dbConfig = config.get('db');
 
 export const typeOrmConifg: TypeOrmModuleOptions = {
     type: dbConfig.type,
-    url: process.env.MONGO_URL,
-    entities: [path.join(__dirname, '**/**.entity{.ts,.js}')],
+    url: process.env.DB_URL,
+    entities: [path.join(process.cwd(), 'dist', '**/**.entity.js')],
     synchronize: dbConfig.synchronize,
     useNewUrlParser: dbConfig.useNewUrlParser,
     useUnifiedTopology: dbConfig.useUnifiedTopology,
