@@ -26,7 +26,7 @@ export class UserController {
      * @returns {Promise<User>} - User if it was found.
      */
     @Get('/:id')
-    public async getUserById(@Param('id') id: number): Promise<User> {
+    public async getUserById(@Param('id') id: string): Promise<User> {
         return this.userService.getUserById(id);
     }
 

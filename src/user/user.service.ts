@@ -16,7 +16,7 @@ export class UserService {
      * @returns {Promise<User[]>} - All registered users.
      */
     public async getAllUsers(): Promise<User[]> {
-        const users = await this.userRepository.find();
+        const users = await this.userRepository.find({ relations: ['boards'] });
         return users.map(user => this.removeSensitiveAttributes(user));
     }
 
@@ -27,7 +27,7 @@ export class UserService {
      * @returns {Promise<User>} - User if it was found.
      * @throws {NotFoundException} - If no user was found.
      */
-    public async getUserById(id: number): Promise<User> {
+    public async getUserById(id: string): Promise<User> {
         const user = await this.userRepository.findOne({ id });
         if (user) {
             return this.removeSensitiveAttributes(user);

@@ -1,4 +1,4 @@
 export class GetBoardDto {
-    id: number;
+    id: string;
     title: string;
 }
