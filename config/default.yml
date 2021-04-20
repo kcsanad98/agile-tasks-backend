@@ -3,7 +3,7 @@ server:
 
 db:
     type: mongodb
-    synchronize: true
+    synchronize: false
     useNewUrlParser: true
     useUnifiedTopology: true
     logging: true

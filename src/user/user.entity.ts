@@ -1,5 +1,6 @@
-import { BaseEntity, Column, Entity, ObjectIdColumn } from 'typeorm';
+import { BaseEntity, Column, Entity, JoinTable, ObjectIdColumn, OneToMany } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { Board } from 'src/board/board.entity';
 
 @Entity()
 export class User extends BaseEntity {
@@ -14,6 +15,10 @@ export class User extends BaseEntity {
 
     @Column()
     salt: string;
+
+    @OneToMany(() => Board, board => board.owner, { eager: true })
+    @JoinTable()
+    ownedBoards: Board[];
 
     public constructor(email: string, password: string, salt: string) {
         super();
