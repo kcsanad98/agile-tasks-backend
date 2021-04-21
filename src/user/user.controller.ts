@@ -1,7 +1,9 @@
 import { Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { GetUserDto } from './dto/get-user.dto';
 import { GetUser } from './get-user.decorator';
-import { User } from './user.entity';
+import { User } from './user.schema';
+import { Schema as MongooseSchema } from 'mongoose';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -9,33 +11,16 @@ import { UserService } from './user.service';
 export class UserController {
     constructor(private userService: UserService) {}
 
-    /**
-     * Read all users endpoint.
-     *
-     * @returns {Promise<User[]>} - All registered users.
-     */
     @Get()
-    public async getAllUsers(): Promise<User[]> {
+    public async getAllUsers(): Promise<GetUserDto[]> {
         return this.userService.getAllUsers();
     }
 
-    /**
-     * Read a user by Id endpoint.
-     *
-     * @param {number} id - Id of the user.
-     * @returns {Promise<User>} - User if it was found.
-     */
     @Get('/:id')
-    public async getUserById(@Param('id') id: string): Promise<User> {
+    public async getUserById(@Param('id') id: MongooseSchema.Types.ObjectId): Promise<GetUserDto> {
         return this.userService.getUserById(id);
     }
 
-    /**
-     * Delete user endpoint.
-     *
-     * @param {User} user - User to be removed.
-     * @returns {Promise<void>} - No return value.
-     */
     @Delete()
     public async deleteUser(@GetUser() user: User): Promise<void> {
         return this.userService.deleteUser(user);

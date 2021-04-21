@@ -1,11 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { GetUser } from 'src/user/get-user.decorator';
-import { User } from 'src/user/user.entity';
+import { User } from 'src/user/user.schema';
+import { Schema as MongooseSchema } from 'mongoose';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { GetBoardDto } from './dto/get-board.dto';
 import { BoardService } from './board.service';
 import { AuthGuard } from '@nestjs/passport';
-import { UserBoardDto } from './dto/user-board.dto';
 
 @Controller('board')
 @UseGuards(AuthGuard())
@@ -17,10 +17,10 @@ export class BoardController {
         return this.boardService.getBoards(user);
     }
 
-    @Get('/:boardId')
+    @Get(':boardId')
     public async getBoardById(
         @GetUser() user: User,
-        @Param(':boardId') boardId: string
+        @Param('boardId') boardId: MongooseSchema.Types.ObjectId
     ): Promise<GetBoardDto> {
         return this.boardService.getBoard(user, boardId);
     }
@@ -33,14 +33,14 @@ export class BoardController {
         return this.boardService.createBoard(user, createBoardDto);
     }
 
-    @Delete('/:boardId')
+    @Delete(':boardId')
     public async deleteBoard(
         @GetUser() user: User,
-        @Param(':boardId') boardId: string
+        @Param('boardId') boardId: MongooseSchema.Types.ObjectId
     ): Promise<void> {
         return this.boardService.deleteBoard(user, boardId);
     }
-
+    /*
     @Put('users/add')
     public async addUserToBoard(@Body() userBoardDto: UserBoardDto): Promise<UserBoardDto> {
         return this.boardService.addUserToBoard(userBoardDto);
@@ -50,4 +50,5 @@ export class BoardController {
     public async removeUserFromBoard(@Body() userBoardDto: UserBoardDto): Promise<void> {
         return this.boardService.removeUserFromBoard(userBoardDto);
     }
+    */
 }

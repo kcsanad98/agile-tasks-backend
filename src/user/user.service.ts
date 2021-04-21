@@ -1,51 +1,73 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './user.entity';
-import { UserRepository } from './user.repository';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Model, Schema as MongooseSchema } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { User, UserDocument } from './user.schema';
+import { GetUserDto } from './dto/get-user.dto';
+import { BoardService } from 'src/board/board.service';
 
 @Injectable()
 export class UserService {
     constructor(
-        @InjectRepository(UserRepository)
-        private userRepository: UserRepository
+        @InjectModel(User.name) private userModel: Model<UserDocument>,
+        @Inject(forwardRef(() => BoardService)) private boardService: BoardService
     ) {}
 
-    /**
-     * Reads all users from the database.
-     *
-     * @returns {Promise<User[]>} - All registered users.
-     */
-    public async getAllUsers(): Promise<User[]> {
-        const users = await this.userRepository.find({ relations: ['boards'] });
+    public async getAllUsers(): Promise<GetUserDto[]> {
+        const users = await this.userModel.find().exec();
         return users.map(user => this.removeSensitiveAttributes(user));
     }
 
-    /**
-     * Reads a user by Id from the database.
-     *
-     * @param {number} id - Id of the user.
-     * @returns {Promise<User>} - User if it was found.
-     * @throws {NotFoundException} - If no user was found.
-     */
-    public async getUserById(id: string): Promise<User> {
-        const user = await this.userRepository.findOne({ id });
+    public async getUserById(id: MongooseSchema.Types.ObjectId): Promise<GetUserDto> {
+        const user = await this.userModel.findOne({ _id: id }).populate('boards').exec();
         if (user) {
             return this.removeSensitiveAttributes(user);
         }
         throw new NotFoundException(`No user exists with Id ${id}`);
     }
 
-    /**
-     * Removes a user from the database.
-     *
-     * @param {User} user - User to be removed.
-     */
     public async deleteUser(user: User): Promise<void> {
-        this.userRepository.delete(user);
+        const userToDelete = await this.getUserById(user.id);
+        userToDelete.boards
+            .map(board => (board.id as unknown) as MongooseSchema.Types.ObjectId)
+            .forEach(
+                async boardId => await this.boardService.removeUserFromBoard(user.id, boardId)
+            );
+        this.userModel.findByIdAndDelete(user.id).exec();
     }
 
-    private removeSensitiveAttributes(user: User): User {
-        const { password, salt, ...userCopy } = user;
-        return userCopy as User;
+    public async addBoardToUser(
+        userId: MongooseSchema.Types.ObjectId,
+        boardId: MongooseSchema.Types.ObjectId
+    ) {
+        await this.userModel
+            .findByIdAndUpdate(
+                userId,
+                { $push: { boards: boardId } },
+                { new: true, useFindAndModify: false }
+            )
+            .exec();
+    }
+
+    public async removeBoardFromUser(
+        userId: MongooseSchema.Types.ObjectId,
+        boardId: MongooseSchema.Types.ObjectId
+    ): Promise<void> {
+        await this.userModel
+            .findByIdAndUpdate(
+                userId,
+                { $pull: { boards: boardId } },
+                { useFindAndModify: false, multi: true }
+            )
+            .exec();
+    }
+
+    public removeSensitiveAttributes(user): GetUserDto {
+        const { _id, email, boards } = user;
+        const userCopy: GetUserDto = {
+            id: _id,
+            email,
+            boards: boards.map(board => ({ id: board._id, title: board.title }))
+        };
+        return userCopy;
     }
 }

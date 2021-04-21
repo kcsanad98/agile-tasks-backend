@@ -1,52 +1,102 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/user/user.entity';
-import { BoardRepository } from './board.repository';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Model, Schema as MongooseSchema } from 'mongoose';
+import { User, UserDocument } from 'src/user/user.schema';
+import { Board, BoardDocument } from './board.schema';
+import { InjectModel } from '@nestjs/mongoose';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { GetBoardDto } from './dto/get-board.dto';
-import { UserBoardDto } from './dto/user-board.dto';
-import { UserBoard } from './entities/user-board.entity';
-import { UserBoardRepository } from './user-board.repository';
+import { UserService } from 'src/user/user.service';
+
+const NO_ACCESS_ERROR = 'User has no access to requested board';
 
 @Injectable()
 export class BoardService {
     constructor(
-        @InjectRepository(BoardRepository) private boardRepository: BoardRepository,
-        @InjectRepository(UserBoardRepository) private userBoardRepository: UserBoardRepository
+        @InjectModel(Board.name) private boardModel: Model<BoardDocument>,
+        private userService: UserService
     ) {}
 
     public async getBoards(user: User): Promise<GetBoardDto[]> {
-        const userBoards: UserBoard[] = await this.userBoardRepository.find({ userId: user.id });
-        const boardIds = userBoards.map(userBoard => userBoard.boardId);
-        return this.boardRepository.findByIds(boardIds);
+        const boardIds = user.boards;
+        const boards = await this.boardModel.find({ _id: { $in: boardIds } });
+        return boards.map(board => this.transformBoard(board));
     }
 
-    public async getBoard(user: User, boardId: string): Promise<GetBoardDto> {
-        //TODO: check permission
-        return this.boardRepository.findOne({ id: boardId });
+    public async getBoard(
+        user: User,
+        boardId: MongooseSchema.Types.ObjectId
+    ): Promise<GetBoardDto> {
+        console.log(boardId);
+        if (!this.hasAccess(user, boardId)) {
+            throw new UnauthorizedException(NO_ACCESS_ERROR);
+        }
+        const board: BoardDocument = await this.boardModel
+            .findById(boardId)
+            .populate({
+                path: 'users'
+            })
+            .exec();
+        if (!board) {
+            throw new NotFoundException(`No board available with id ${boardId}`);
+        }
+        return this.transformBoard(board);
     }
 
     public async createBoard(user: User, createBoardDto: CreateBoardDto): Promise<GetBoardDto> {
-        const board = await this.boardRepository.create(createBoardDto).save();
-        await this.userBoardRepository.create({ userId: user.id, boardId: board.id }).save();
-        return board;
+        const createdBoard = await new this.boardModel(createBoardDto).save();
+        await this.addUserToBoard(user.id, createdBoard._id);
+        await this.userService.addBoardToUser(user.id, createdBoard._id);
+        return this.transformBoard(createdBoard);
     }
 
-    public async deleteBoard(user: User, boardId: string): Promise<void> {
-        //TODO: check permission
-        this.userBoardRepository.delete({ boardId: boardId });
-        this.boardRepository.delete({ id: boardId });
+    public async deleteBoard(user: User, boardId: MongooseSchema.Types.ObjectId): Promise<void> {
+        if (!this.hasAccess(user, boardId)) {
+            throw new UnauthorizedException(NO_ACCESS_ERROR);
+        }
+        const boardToDelete = await this.getBoard(user, boardId);
+        boardToDelete.users
+            .map(user => (user.id as unknown) as MongooseSchema.Types.ObjectId)
+            .forEach(async userId => await this.userService.removeBoardFromUser(userId, boardId));
+        this.boardModel.findByIdAndDelete(boardId).exec();
     }
 
-    public async addUserToBoard(userBoardDto: UserBoardDto) {
-        return this.userBoardRepository.create(userBoardDto).save();
+    public async addUserToBoard(
+        userId: MongooseSchema.Types.ObjectId,
+        boardId: MongooseSchema.Types.ObjectId
+    ): Promise<void> {
+        await this.boardModel
+            .findByIdAndUpdate(
+                boardId,
+                { $push: { users: userId } },
+                { new: true, useFindAndModify: false }
+            )
+            .exec();
     }
 
-    public async removeUserFromBoard(userBoardDto: UserBoardDto): Promise<void> {
-        console.log(userBoardDto);
-        this.userBoardRepository.delete({
-            userId: userBoardDto.userId,
-            boardId: userBoardDto.boardId
-        });
+    public async removeUserFromBoard(
+        userId: MongooseSchema.Types.ObjectId,
+        boardId: MongooseSchema.Types.ObjectId
+    ): Promise<void> {
+        await this.boardModel
+            .findByIdAndUpdate(
+                boardId,
+                { $pull: { users: userId } },
+                { useFindAndModify: false, multi: true }
+            )
+            .exec();
+    }
+
+    private transformBoard(board: BoardDocument): GetBoardDto {
+        const { _id, title } = board;
+        const boardCopy: GetBoardDto = {
+            id: _id,
+            title,
+            users: board.users.map(user => ({ id: user['_id'], email: user.email }))
+        };
+        return boardCopy;
+    }
+
+    private hasAccess(user: User, boardId: MongooseSchema.Types.ObjectId): boolean {
+        return user.boards.includes(boardId);
     }
 }

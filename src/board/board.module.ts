@@ -1,18 +1,19 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 import { BoardService } from './board.service';
 import { BoardController } from './board.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { BoardRepository } from './board.repository';
-import { UserRepository } from 'src/user/user.repository';
+import { Board, BoardSchema } from './board.schema';
 import { AuthModule } from 'src/auth/auth.module';
-import { UserBoardRepository } from './user-board.repository';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([BoardRepository, UserRepository, UserBoardRepository]),
-        AuthModule
+        MongooseModule.forFeature([{ name: Board.name, schema: BoardSchema }]),
+        forwardRef(() => AuthModule),
+        forwardRef(() => UserModule)
     ],
     providers: [BoardService],
-    controllers: [BoardController]
+    controllers: [BoardController],
+    exports: [BoardService]
 })
 export class BoardModule {}

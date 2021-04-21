@@ -1,18 +1,15 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Strategy, ExtractJwt } from 'passport-jwt';
-import { User } from 'src/user/user.entity';
+import { User, UserDocument } from 'src/user/user.schema';
 import { JwTPayload } from 'src/auth/jwt-payload.interface';
-import { UserRepository } from 'src/user/user.repository';
 import * as config from 'config';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    constructor(
-        @InjectRepository(UserRepository)
-        private userRepository: UserRepository
-    ) {
+    constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             secretOrKey: process.env.JWT_SECRET || config.get('jwt.secret')
@@ -28,10 +25,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
      */
     public async validate(payload: JwTPayload): Promise<User> {
         const { email } = payload;
-        const user = await this.userRepository.findOne({ email });
+        const user = await this.userModel.findOne({ email });
         if (!user) {
             throw new UnauthorizedException();
         }
-        return user;
+        const { _id, ...userCopy } = user['_doc'];
+        userCopy.id = _id;
+        return userCopy;
     }
 }
