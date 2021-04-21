@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Model, Schema as MongooseSchema } from 'mongoose';
-import { User, UserDocument } from 'src/user/user.schema';
+import { User } from 'src/user/user.schema';
 import { Board, BoardDocument } from './board.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateBoardDto } from './dto/create-board.dto';
@@ -26,7 +26,6 @@ export class BoardService {
         user: User,
         boardId: MongooseSchema.Types.ObjectId
     ): Promise<GetBoardDto> {
-        console.log(boardId);
         if (!this.hasAccess(user, boardId)) {
             throw new UnauthorizedException(NO_ACCESS_ERROR);
         }
@@ -44,8 +43,7 @@ export class BoardService {
 
     public async createBoard(user: User, createBoardDto: CreateBoardDto): Promise<GetBoardDto> {
         const createdBoard = await new this.boardModel(createBoardDto).save();
-        await this.addUserToBoard(user.id, createdBoard._id);
-        await this.userService.addBoardToUser(user.id, createdBoard._id);
+        await this.createUserBoardConnection(user.id, createdBoard._id);
         return this.transformBoard(createdBoard);
     }
 
@@ -56,11 +54,27 @@ export class BoardService {
         const boardToDelete = await this.getBoard(user, boardId);
         boardToDelete.users
             .map(user => (user.id as unknown) as MongooseSchema.Types.ObjectId)
-            .forEach(async userId => await this.userService.removeBoardFromUser(userId, boardId));
+            .forEach(async userId => await this.deleteUserBoardConnection(userId, boardId));
         this.boardModel.findByIdAndDelete(boardId).exec();
     }
 
-    public async addUserToBoard(
+    public async createUserBoardConnection(
+        userId: MongooseSchema.Types.ObjectId,
+        boardId: MongooseSchema.Types.ObjectId
+    ) {
+        await this.addUserToBoard(userId, boardId);
+        await this.userService.addBoardToUser(userId, boardId);
+    }
+
+    public async deleteUserBoardConnection(
+        userId: MongooseSchema.Types.ObjectId,
+        boardId: MongooseSchema.Types.ObjectId
+    ) {
+        await this.removeUserFromBoard(userId, boardId);
+        await this.userService.removeBoardFromUser(userId, boardId);
+    }
+
+    private async addUserToBoard(
         userId: MongooseSchema.Types.ObjectId,
         boardId: MongooseSchema.Types.ObjectId
     ): Promise<void> {
@@ -73,7 +87,7 @@ export class BoardService {
             .exec();
     }
 
-    public async removeUserFromBoard(
+    private async removeUserFromBoard(
         userId: MongooseSchema.Types.ObjectId,
         boardId: MongooseSchema.Types.ObjectId
     ): Promise<void> {

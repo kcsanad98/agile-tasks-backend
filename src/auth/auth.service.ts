@@ -71,6 +71,9 @@ export class AuthService {
     private async validateUserPassword(authCredentialsDto: AuthCredentialsDto): Promise<string> {
         const { email, password } = authCredentialsDto;
         const user = await this.userModel.findOne({ email });
+        if (!user) {
+            throw new UnauthorizedException('Invalid credentials');
+        }
         const hash = await bcrypt.hash(password, user.salt);
         return user && hash === user.password ? user.email : null;
     }

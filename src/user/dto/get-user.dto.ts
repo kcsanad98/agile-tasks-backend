@@ -1,5 +1,3 @@
-import { Board } from 'src/board/board.schema';
-
 export class GetUserDto {
     id: string;
     email: string;

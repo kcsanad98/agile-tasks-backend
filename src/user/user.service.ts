@@ -30,7 +30,7 @@ export class UserService {
         userToDelete.boards
             .map(board => (board.id as unknown) as MongooseSchema.Types.ObjectId)
             .forEach(
-                async boardId => await this.boardService.removeUserFromBoard(user.id, boardId)
+                async boardId => await this.boardService.deleteUserBoardConnection(user.id, boardId)
             );
         this.userModel.findByIdAndDelete(user.id).exec();
     }
