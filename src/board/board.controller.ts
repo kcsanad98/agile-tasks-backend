@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Post,
+    Put,
+    UseGuards,
+    ValidationPipe
+} from '@nestjs/common';
 import { GetUser } from 'src/user/get-user.decorator';
 import { User } from 'src/user/user.schema';
 import { Schema as MongooseSchema } from 'mongoose';
@@ -28,7 +38,7 @@ export class BoardController {
 
     @Post()
     public async createBoard(
-        @Body() createBoardDto: CreateBoardDto,
+        @Body(ValidationPipe) createBoardDto: CreateBoardDto,
         @GetUser() user: User
     ): Promise<GetBoardDto> {
         return this.boardService.createBoard(user, createBoardDto);

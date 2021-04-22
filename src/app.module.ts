@@ -4,6 +4,7 @@ import * as dotenv from 'dotenv';
 import { AuthModule } from './auth/auth.module';
 import { BoardModule } from './board/board.module';
 import { UserModule } from './user/user.module';
+import { TaskModule } from './task/task.module';
 
 dotenv.config();
 
@@ -16,7 +17,8 @@ dotenv.config();
         }),
         AuthModule,
         BoardModule,
-        UserModule
+        UserModule,
+        TaskModule
     ]
 })
 export class AppModule {}

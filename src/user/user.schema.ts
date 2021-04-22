@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-import { Exclude } from 'class-transformer';
 
 export type UserDocument = User & Document;
 
@@ -13,11 +12,9 @@ export class User {
     email: string;
 
     @Prop()
-    @Exclude()
     password: string;
 
     @Prop()
-    @Exclude()
     salt: string;
 
     @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Board' }] })
