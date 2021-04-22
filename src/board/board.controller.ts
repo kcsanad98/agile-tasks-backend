@@ -33,14 +33,14 @@ export class BoardController {
         @GetUser() user: User,
         @Param('boardId') boardId: MongooseSchema.Types.ObjectId
     ): Promise<GetBoardDto> {
-        return this.boardService.getBoard(user, boardId);
+        return this.boardService.getBoardById(user, boardId);
     }
 
     @Post()
     public async createBoard(
         @Body(ValidationPipe) createBoardDto: CreateBoardDto,
         @GetUser() user: User
-    ): Promise<GetBoardDto> {
+    ): Promise<MongooseSchema.Types.ObjectId> {
         return this.boardService.createBoard(user, createBoardDto);
     }
 

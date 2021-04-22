@@ -1,6 +1,5 @@
 import { IsIn, IsString, MaxLength, MinLength } from 'class-validator';
 import { taskStatuses } from '../task.schema';
-import { Schema as MongooseSchema } from 'mongoose';
 
 const MIN_LENGTH = 1;
 const MAX_LENGTH = 20;

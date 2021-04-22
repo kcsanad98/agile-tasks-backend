@@ -55,11 +55,11 @@ export class AuthService {
      * @returns {Promise<{ accessToken: string }>} - Jwt token.
      */
     public async signIn(authCredentialsDto: AuthCredentialsDto): Promise<{ accessToken: string }> {
-        const email = await this.validateUserPassword(authCredentialsDto);
-        if (!email) {
+        const user = await this.validateUserPassword(authCredentialsDto);
+        if (!user) {
             throw new UnauthorizedException('Invalid credentials');
         }
-        const payload: JwTPayload = { email };
+        const payload: JwTPayload = { email: user.email, id: user._id };
         const accessToken = this.jwtService.sign(payload);
         return { accessToken };
     }
@@ -68,13 +68,15 @@ export class AuthService {
         return bcrypt.hash(password, salt);
     }
 
-    private async validateUserPassword(authCredentialsDto: AuthCredentialsDto): Promise<string> {
+    private async validateUserPassword(
+        authCredentialsDto: AuthCredentialsDto
+    ): Promise<UserDocument> {
         const { email, password } = authCredentialsDto;
         const user = await this.userModel.findOne({ email });
         if (!user) {
             throw new UnauthorizedException('Invalid credentials');
         }
         const hash = await bcrypt.hash(password, user.salt);
-        return user && hash === user.password ? user.email : null;
+        return user && hash === user.password ? user : null;
     }
 }

@@ -1,6 +1,6 @@
 import { Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { GetUserDto } from './dto/get-user.dto';
+import { GetUserDto } from './get-user.dto';
 import { GetUser } from './get-user.decorator';
 import { User } from './user.schema';
 import { Schema as MongooseSchema } from 'mongoose';

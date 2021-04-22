@@ -18,8 +18,8 @@ export class Task {
     @Prop({ enum: taskStatuses })
     status: string;
 
-    @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Board' }] })
-    board: MongooseSchema.Types.ObjectId[];
+    @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Board' })
+    board: MongooseSchema.Types.ObjectId;
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);

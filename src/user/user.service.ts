@@ -2,7 +2,7 @@ import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/commo
 import { Model, Schema as MongooseSchema } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './user.schema';
-import { GetUserDto } from './dto/get-user.dto';
+import { GetUserDto } from './get-user.dto';
 import { BoardService } from 'src/board/board.service';
 
 @Injectable()
