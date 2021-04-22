@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUserDto } from './get-user.dto';
 import { GetUser } from './get-user.decorator';
@@ -12,8 +12,8 @@ export class UserController {
     constructor(private userService: UserService) {}
 
     @Get()
-    public async getAllUsers(): Promise<GetUserDto[]> {
-        return this.userService.getAllUsers();
+    public async getAllUsers(@Query('filter') filter?: string): Promise<GetUserDto[]> {
+        return this.userService.getAllUsers(filter);
     }
 
     @Get('/:id')

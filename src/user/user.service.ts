@@ -12,13 +12,17 @@ export class UserService {
         @Inject(forwardRef(() => BoardService)) private boardService: BoardService
     ) {}
 
-    public async getAllUsers(): Promise<GetUserDto[]> {
-        const users = await this.userModel.find().exec();
+    public async getAllUsers(filter?: string): Promise<GetUserDto[]> {
+        const findOpts = {};
+        if (filter) {
+            findOpts['email'] = { $regex: filter };
+        }
+        const users = await this.userModel.find(findOpts).populate('boards').exec();
         return users.map(user => this.removeSensitiveAttributes(user));
     }
 
     public async getUserById(id: MongooseSchema.Types.ObjectId): Promise<GetUserDto> {
-        const user = await this.userModel.findOne({ _id: id }).populate('boards').exec();
+        const user = await this.userModel.findById(id).populate('boards').exec();
         if (user) {
             return this.removeSensitiveAttributes(user);
         }
