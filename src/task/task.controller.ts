@@ -37,12 +37,11 @@ export class TaskController {
         return await this.taskService.getTasksByBoard(user, boardId);
     }
 
-    @Post('/board/:boardId')
+    @Post()
     public async createTask(
-        @Param('boardId') boardId: MongooseSchema.Types.ObjectId,
         @Body(ValidationPipe) createTaskDto: CreateTaskDto
     ): Promise<MongooseSchema.Types.ObjectId> {
-        return await this.taskService.createTask(boardId, createTaskDto);
+        return await this.taskService.createTask(createTaskDto);
     }
 
     @Put(':taskId')

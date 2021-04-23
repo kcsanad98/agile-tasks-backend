@@ -30,14 +30,10 @@ export class TaskService {
         return board.tasks;
     }
 
-    public async createTask(
-        boardId: MongooseSchema.Types.ObjectId,
-        createTaskDto: CreateTaskDto
-    ): Promise<MongooseSchema.Types.ObjectId> {
-        const taskToCreate = { ...createTaskDto, board: boardId };
-        const createdTask: TaskDocument = await new this.taskModel(taskToCreate).save();
+    public async createTask(createTaskDto: CreateTaskDto): Promise<MongooseSchema.Types.ObjectId> {
+        const createdTask: TaskDocument = await new this.taskModel(createTaskDto).save();
         const taskId = createdTask._id;
-        this.boardService.addTaskToBoard(taskId, boardId);
+        this.boardService.addTaskToBoard(taskId, createTaskDto.board);
         return taskId;
     }
 

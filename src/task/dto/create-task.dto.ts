@@ -1,4 +1,5 @@
 import { IsIn, IsString, MaxLength, MinLength } from 'class-validator';
+import { Schema as MongooseSchema } from 'mongoose';
 import { taskStatuses } from '../task.schema';
 
 const MIN_LENGTH = 1;
@@ -18,4 +19,7 @@ export class CreateTaskDto {
     @IsString()
     @IsIn(taskStatuses)
     status: string;
+
+    @IsString()
+    board: MongooseSchema.Types.ObjectId;
 }
