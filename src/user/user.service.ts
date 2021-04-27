@@ -46,7 +46,7 @@ export class UserService {
         await this.userModel
             .findByIdAndUpdate(
                 userId,
-                { $push: { boards: boardId } },
+                { $addToSet: { boards: boardId } },
                 { new: true, useFindAndModify: false }
             )
             .exec();

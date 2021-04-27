@@ -1,7 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { User } from 'src/user/user.schema';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-import { Task } from 'src/task/task.schema';
 
 export type BoardDocument = Board & Document;
 
@@ -14,10 +12,10 @@ export class Board {
     title: string;
 
     @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'User' }] })
-    users: User[];
+    users: MongooseSchema.Types.ObjectId[];
 
     @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Task' }] })
-    tasks: Task[];
+    tasks: MongooseSchema.Types.ObjectId[];
 
     constructor(title?: string) {
         this.title = title;

@@ -93,7 +93,7 @@ export class BoardService {
         await this.boardModel
             .findByIdAndUpdate(
                 boardId,
-                { $push: { tasks: taskId } },
+                { $addToSet: { tasks: taskId } },
                 { new: true, useFindAndModify: false }
             )
             .exec();
@@ -119,7 +119,7 @@ export class BoardService {
         await this.boardModel
             .findByIdAndUpdate(
                 boardId,
-                { $push: { users: userId } },
+                { $addToSet: { users: userId } },
                 { new: true, useFindAndModify: false }
             )
             .exec();
@@ -138,7 +138,7 @@ export class BoardService {
             .exec();
     }
 
-    private transformBoard(board: BoardDocument): GetBoardDto {
+    private transformBoard(board): GetBoardDto {
         const { _id, title } = board;
         const boardCopy: GetBoardDto = {
             id: _id,
