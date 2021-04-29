@@ -24,10 +24,15 @@ export class TaskService {
 
     public async getTasksByBoard(
         user: User,
-        boardId: MongooseSchema.Types.ObjectId
+        boardId: MongooseSchema.Types.ObjectId,
+        status?: string
     ): Promise<GetTaskDto[]> {
         const board = await this.boardService.getBoardById(user, boardId);
-        return board.tasks;
+        let tasks = board.tasks;
+        if (status) {
+            tasks = tasks.filter(task => task.status === status);
+        }
+        return tasks;
     }
 
     public async createTask(createTaskDto: CreateTaskDto): Promise<MongooseSchema.Types.ObjectId> {
@@ -39,7 +44,7 @@ export class TaskService {
 
     public async updateTask(
         taskId: MongooseSchema.Types.ObjectId,
-        createTaskDto: CreateTaskDto
+        createTaskDto: Partial<CreateTaskDto>
     ): Promise<GetTaskDto> {
         await this.taskModel
             .findByIdAndUpdate(taskId, createTaskDto, { useFindAndModify: false })

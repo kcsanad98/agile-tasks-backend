@@ -6,6 +6,7 @@ import {
     Param,
     Post,
     Put,
+    Query,
     UseGuards,
     ValidationPipe
 } from '@nestjs/common';
@@ -32,9 +33,10 @@ export class TaskController {
     @Get('/board/:boardId')
     public async getTasksByBoard(
         @GetUser() user: User,
-        @Param('boardId') boardId: MongooseSchema.Types.ObjectId
+        @Param('boardId') boardId: MongooseSchema.Types.ObjectId,
+        @Query('status') status?: string
     ): Promise<GetTaskDto[]> {
-        return await this.taskService.getTasksByBoard(user, boardId);
+        return await this.taskService.getTasksByBoard(user, boardId, status);
     }
 
     @Post()
@@ -47,7 +49,7 @@ export class TaskController {
     @Put(':taskId')
     public async updateTask(
         @Param('taskId') taskId: MongooseSchema.Types.ObjectId,
-        @Body(ValidationPipe) createTaskDto: CreateTaskDto
+        @Body(ValidationPipe) createTaskDto: Partial<CreateTaskDto>
     ): Promise<GetTaskDto> {
         return await this.taskService.updateTask(taskId, createTaskDto);
     }
