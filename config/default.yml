@@ -2,6 +2,11 @@ server:
     port: 8080
     socketGateway: task-update
 
+socket:
+    update: task-update
+    delete: task-delete
+    add: task-add
+
 db:
     type: mongodb
     synchronize: false
