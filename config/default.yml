@@ -1,5 +1,6 @@
 server:
     port: 8080
+    socketGateway: task-update
 
 db:
     type: mongodb

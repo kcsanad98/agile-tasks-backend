@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Task, TaskSchema } from './task.schema';
 import { BoardModule } from 'src/board/board.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { TaskGateway } from './task.gateway';
 
 @Module({
     imports: [
@@ -13,7 +14,7 @@ import { AuthModule } from 'src/auth/auth.module';
         forwardRef(() => AuthModule)
     ],
     controllers: [TaskController],
-    providers: [TaskService],
+    providers: [TaskService, TaskGateway],
     exports: [TaskService]
 })
 export class TaskModule {}

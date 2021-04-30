@@ -2,8 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { LoggingInterceptor } from './shared/logging.interceptor';
+import * as config from 'config';
 
-const DEFAULT_PORT = 8080;
+const DEFAULT_PORT = config.get('server').port;
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
